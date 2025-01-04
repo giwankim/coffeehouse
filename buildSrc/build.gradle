@@ -12,4 +12,14 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-gradle-plugin:${props['springBootVersion']}")
     implementation("io.spring.gradle:dependency-management-plugin:${props['springDependencyManagementVersion']}")
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:${props['spotlessVersion']}")
+}
+
+gradlePlugin {
+    plugins {
+        spotlessConvention {
+            id = 'spotless-convention'
+            implementationClass = 'SpotlessConventionPlugin'
+        }
+    }
 }

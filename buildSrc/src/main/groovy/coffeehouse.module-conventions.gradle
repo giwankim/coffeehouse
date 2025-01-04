@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'io.spring.dependency-management'
+    id 'spotless-convention'
 }
 
 group = "$projectGroup"
@@ -25,7 +26,9 @@ dependencies {
     api(project(':libraries:spring-extensions'))
     implementation('org.springframework:spring-context')
     implementation('org.springframework:spring-webmvc')
-    
+    implementation('org.springframework:spring-messaging')
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
     testImplementation('org.springframework:spring-test')
     testImplementation('org.junit.jupiter:junit-jupiter')
     testImplementation('org.mockito:mockito-junit-jupiter')
@@ -35,6 +38,12 @@ dependencies {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of("$javaVersion"))
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
     }
 }
 
