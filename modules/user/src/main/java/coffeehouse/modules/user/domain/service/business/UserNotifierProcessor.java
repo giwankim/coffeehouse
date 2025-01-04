@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserNotifierProcessor implements UserNotifier {
-    @Override
-    public void notify(UserAccount userAccount) {
-        // ----------------------------------------------------------
-        // Notify user
-        // ----------------------------------------------------------
-    }
+  @Override
+  public void notify(UserAccount userAccount) {
+    // ----------------------------------------------------------
+    // Notify user
+    // ----------------------------------------------------------
+  }
 }

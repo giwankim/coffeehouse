@@ -8,10 +8,10 @@ import coffeehouse.modules.order.domain.OrderId;
 @FunctionalInterface
 public interface OrderAcceptance {
 
-    /**
-     * Accepts a received order.
-     *
-     * @param orderId The ID of the order to accept
-     */
-    void acceptOrder(OrderId orderId);
+  /**
+   * Accepts a received order.
+   *
+   * @param orderId The ID of the order to accept
+   */
+  void acceptOrder(OrderId orderId);
 }

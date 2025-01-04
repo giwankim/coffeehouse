@@ -8,5 +8,5 @@ import coffeehouse.modules.brew.domain.OrderId;
 @FunctionalInterface
 public interface BrewNotifier {
 
-    void notify(OrderId orderId);
+  void notify(OrderId orderId);
 }

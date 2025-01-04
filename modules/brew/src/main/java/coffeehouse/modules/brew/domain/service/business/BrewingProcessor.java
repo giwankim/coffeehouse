@@ -4,11 +4,10 @@ import coffeehouse.modules.brew.domain.OrderSheetId;
 import coffeehouse.modules.brew.domain.entity.OrderSheet;
 import coffeehouse.modules.brew.domain.entity.OrderSheetRepository;
 import coffeehouse.modules.brew.domain.service.OrderSheetSubmission;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 /**
  * @author springrunner.kr@gmail.com
@@ -16,19 +15,19 @@ import java.util.UUID;
 @Service
 class BrewingProcessor implements OrderSheetSubmission {
 
-    private final OrderSheetRepository orderSheetRepository;
+  private final OrderSheetRepository orderSheetRepository;
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    BrewingProcessor(OrderSheetRepository orderSheetRepository) {
-        this.orderSheetRepository = orderSheetRepository;
-    }
+  BrewingProcessor(OrderSheetRepository orderSheetRepository) {
+    this.orderSheetRepository = orderSheetRepository;
+  }
 
-    @Override
-    public void submit(OrderSheetForm orderSheetForm) {
-        logger.info("Submitted order-sheet: %s".formatted(orderSheetForm));
-        var orderSheetId = new OrderSheetId(UUID.randomUUID().toString());
-        var orderSheet = OrderSheet.create(orderSheetId, orderSheetForm.orderId());
-        orderSheetRepository.save(orderSheet);
-    }
+  @Override
+  public void submit(OrderSheetForm orderSheetForm) {
+    logger.info("Submitted order-sheet: %s".formatted(orderSheetForm));
+    var orderSheetId = new OrderSheetId(UUID.randomUUID().toString());
+    var orderSheet = OrderSheet.create(orderSheetId, orderSheetForm.orderId());
+    orderSheetRepository.save(orderSheet);
+  }
 }

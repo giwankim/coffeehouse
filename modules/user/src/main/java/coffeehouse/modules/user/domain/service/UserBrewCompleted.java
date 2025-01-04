@@ -1,6 +1,5 @@
 package coffeehouse.modules.user.domain.service;
 
-
 import coffeehouse.modules.user.domain.OrderId;
 
 /**
@@ -9,5 +8,5 @@ import coffeehouse.modules.user.domain.OrderId;
 @FunctionalInterface
 public interface UserBrewCompleted {
 
-    void notify(OrderId orderId);
+  void notify(OrderId orderId);
 }

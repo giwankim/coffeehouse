@@ -5,8 +5,8 @@ package coffeehouse.modules.user.domain;
  */
 public record UserAccountId(String value) {
 
-    @Override
-    public String toString() {
-        return value;
-    }
+  @Override
+  public String toString() {
+    return value;
+  }
 }

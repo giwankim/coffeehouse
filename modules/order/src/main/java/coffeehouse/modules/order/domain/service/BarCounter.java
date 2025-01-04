@@ -8,10 +8,10 @@ import coffeehouse.modules.order.domain.OrderId;
 @FunctionalInterface
 public interface BarCounter {
 
-    /**
-     * Request to brew a drink.
-     *
-     * @param orderId The ID of the order
-     */
-    void brew(OrderId orderId);
+  /**
+   * Request to brew a drink.
+   *
+   * @param orderId The ID of the order
+   */
+  void brew(OrderId orderId);
 }

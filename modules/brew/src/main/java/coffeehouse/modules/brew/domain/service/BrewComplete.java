@@ -1,6 +1,5 @@
 package coffeehouse.modules.brew.domain.service;
 
-
 import coffeehouse.modules.brew.domain.OrderId;
 
 /**
@@ -9,5 +8,5 @@ import coffeehouse.modules.brew.domain.OrderId;
 @FunctionalInterface
 public interface BrewComplete {
 
-    void complete(OrderId orderId);
+  void complete(OrderId orderId);
 }

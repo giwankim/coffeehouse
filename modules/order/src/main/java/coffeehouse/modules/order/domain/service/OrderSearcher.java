@@ -8,5 +8,5 @@ import coffeehouse.modules.order.domain.entity.Order;
  */
 @FunctionalInterface
 public interface OrderSearcher {
-    Order findById(OrderId orderId);
+  Order findById(OrderId orderId);
 }

@@ -7,5 +7,5 @@ import coffeehouse.modules.order.domain.OrderId;
  */
 @FunctionalInterface
 public interface OrderCounter {
-    void notify(OrderId orderId);
+  void notify(OrderId orderId);
 }

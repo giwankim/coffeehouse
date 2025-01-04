@@ -1,6 +1,5 @@
 package coffeehouse.modules.brew.domain.service;
 
-
 import coffeehouse.modules.brew.domain.OrderId;
 
 /**
@@ -9,13 +8,12 @@ import coffeehouse.modules.brew.domain.OrderId;
 @FunctionalInterface
 public interface OrderSheetSubmission {
 
-    /**
-     * Submits an order sheet.
-     *
-     * @param orderSheetForm The form of the order to submit
-     */
-    void submit(OrderSheetForm orderSheetForm);
+  /**
+   * Submits an order sheet.
+   *
+   * @param orderSheetForm The form of the order to submit
+   */
+  void submit(OrderSheetForm orderSheetForm);
 
-    record OrderSheetForm(OrderId orderId) {
-    }
+  record OrderSheetForm(OrderId orderId) {}
 }

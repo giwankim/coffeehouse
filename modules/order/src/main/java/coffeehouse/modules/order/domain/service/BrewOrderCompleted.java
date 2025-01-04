@@ -8,5 +8,5 @@ import coffeehouse.modules.order.domain.OrderId;
 @FunctionalInterface
 public interface BrewOrderCompleted {
 
-    void changeOrderStatus(OrderId orderId);
+  void changeOrderStatus(OrderId orderId);
 }
