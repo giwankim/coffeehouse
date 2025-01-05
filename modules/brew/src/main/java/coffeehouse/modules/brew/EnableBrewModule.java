@@ -3,21 +3,21 @@ package coffeehouse.modules.brew;
 import coffeehouse.modules.brew.domain.OrderId;
 import coffeehouse.modules.brew.domain.service.OrderSheetSubmission;
 import coffeehouse.modules.order.domain.message.BrewRequestCommand;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Observable;
-
+import java.net.URI;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.messaging.Message;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.http.dsl.Http;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 
 /**
  * @author springrunner.kr@gmail.com
@@ -31,24 +31,46 @@ public @interface EnableBrewModule {
   @ComponentScan
   class BrewModuleConfiguration {
     @Bean
-    MessageHandler messageHandler(
+    public IntegrationFlow requestBrewIntegrationFlow(
         OrderSheetSubmission orderSheetSubmission, MessageChannel barCounterChannel) {
-      MessageHandler messageHandler = new MessageHandler() {
-        @Override
-        public void handleMessage(Message<?> message) throws MessagingException {
-          BrewRequestCommand command = (BrewRequestCommand) message.getPayload();
-          OrderId brewOrderId = new OrderId(command.orderId().value());
-          orderSheetSubmission.submit(new OrderSheetSubmission.OrderSheetForm(brewOrderId));
-        }
-      };
+      return IntegrationFlow.from(barCounterChannel)
+          .handle(
+              message -> {
+                BrewRequestCommand command = (BrewRequestCommand) message.getPayload();
+                OrderId brewOrderId = new OrderId(command.orderId().value());
+                orderSheetSubmission.submit(new OrderSheetSubmission.OrderSheetForm(brewOrderId));
+              })
+          .get();
+    }
 
-      Observable observable = (Observable) barCounterChannel;
-      observable.addObserver((o, arg) -> {
-        Message<?> message = (Message<?>) arg;
-        messageHandler.handleMessage(message);
-      });
+    @Bean
+    MessageChannel brewCompletedNotifyOrderChannel() {
+      return new DirectChannel();
+    }
 
-      return messageHandler;
+    @Bean
+    MessageChannel brewCompletedNotifyUserChannel() {
+      return new DirectChannel();
+    }
+
+    @Bean
+    public IntegrationFlow notifyOrderIntegrationFlow(
+        MessageChannel brewCompletedNotifyOrderChannel, Environment environment) {
+      URI uri =
+          environment.getRequiredProperty("coffeehouse.brew.notify-brew-complete-uri", URI.class);
+      return IntegrationFlow.from(brewCompletedNotifyOrderChannel)
+          .handle(Http.outboundChannelAdapter(uri).httpMethod(HttpMethod.POST))
+          .get();
+    }
+
+    @Bean
+    public IntegrationFlow notifyUserIntegrationFlow(
+        MessageChannel brewCompletedNotifyUserChannel, Environment environment) {
+      URI uri =
+          environment.getRequiredProperty("coffeehouse.user.notify-brew-complete-uri", URI.class);
+      return IntegrationFlow.from(brewCompletedNotifyUserChannel)
+          .handle(Http.outboundChannelAdapter(uri).httpMethod(HttpMethod.POST))
+          .get();
     }
   }
 }

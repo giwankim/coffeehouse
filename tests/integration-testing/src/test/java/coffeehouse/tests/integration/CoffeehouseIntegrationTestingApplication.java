@@ -1,6 +1,5 @@
 package coffeehouse.tests.integration;
 
-import coffeehouse.libraries.message.ObservableChannel;
 import coffeehouse.modules.brew.EnableBrewModule;
 import coffeehouse.modules.brew.domain.OrderSheetId;
 import coffeehouse.modules.brew.domain.entity.OrderSheet;
@@ -20,6 +19,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.web.client.RestTemplate;
 
@@ -55,12 +55,12 @@ public class CoffeehouseIntegrationTestingApplication {
   }
 
   @Bean
-  MessageChannel barCounterChannel() {
-    return new ObservableChannel();
+  RestTemplate defaultRestTemplate(RestTemplateBuilder restTemplateBuilder) {
+    return restTemplateBuilder.build();
   }
 
   @Bean
-  RestTemplate defaultRestTemplate(RestTemplateBuilder restTemplateBuilder) {
-    return restTemplateBuilder.build();
+  MessageChannel barCounterChannel() {
+    return new DirectChannel();
   }
 }
