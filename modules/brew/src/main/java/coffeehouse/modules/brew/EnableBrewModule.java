@@ -26,19 +26,19 @@ import org.springframework.messaging.MessageChannel;
 @Retention(RetentionPolicy.RUNTIME)
 @Import(EnableBrewModule.BrewModuleConfiguration.class)
 public @interface EnableBrewModule {
-
   @Configuration
   @ComponentScan
   class BrewModuleConfiguration {
     @Bean
     public IntegrationFlow requestBrewIntegrationFlow(
-        OrderSheetSubmission orderSheetSubmission, MessageChannel barCounterChannel) {
-      return IntegrationFlow.from(barCounterChannel)
+        OrderSheetSubmission orderSheetSubmission, MessageChannel brewRequestChannel) {
+      return IntegrationFlow.from(brewRequestChannel)
           .handle(
-              message -> {
-                BrewRequestCommand command = (BrewRequestCommand) message.getPayload();
-                OrderId brewOrderId = new OrderId(command.orderId().value());
+              BrewRequestCommand.class,
+              (payload, headers) -> {
+                OrderId brewOrderId = new OrderId(payload.orderId().value());
                 orderSheetSubmission.submit(new OrderSheetSubmission.OrderSheetForm(brewOrderId));
+                return null;
               })
           .get();
     }
