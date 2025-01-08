@@ -7,11 +7,14 @@ import coffeehouse.modules.brew.domain.OrderId;
 import coffeehouse.modules.order.domain.entity.OrderRepository;
 import coffeehouse.modules.order.domain.entity.OrderStatus;
 import coffeehouse.modules.user.domain.service.UserNotifier;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,33 +26,35 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class BrewFulfillmentTests {
 
-    @Autowired
-    BrewComplete brewComplete;
+  @Autowired
+  BrewComplete brewComplete;
 
-    @Autowired
-    OrderSheetRepository orderSheetRepository;
+  @Autowired
+  OrderSheetRepository orderSheetRepository;
 
-    @Autowired
-    OrderRepository orderRepository;
+  @Autowired
+  OrderRepository orderRepository;
 
-    @MockBean
-    UserNotifier userNotifier;
+  @MockBean
+  UserNotifier userNotifier;
 
-    @Test
-    void completeBrew() {
-        // given
-        var orderId = new OrderId("1a176aa8-e834-46e8-b293-0d0208ad1cd8");
+  @Test
+  void completeBrew() {
+    // given
+    var orderId = new OrderId("1a176aa8-e834-46e8-b293-0d0208ad1cd8");
 
-        // when
-        brewComplete.complete(orderId);
+    // when
+    brewComplete.complete(orderId);
 
-        // then
-        var orderSheet = orderSheetRepository.findByOrderId(orderId).orElse(null);
-        assertThat(orderSheet.getOrderSheetStatus()).isEqualTo(OrderSheetStatus.PROCESSED);
+    // then
+    var orderSheet = orderSheetRepository.findByOrderId(orderId).orElse(null);
+    assertThat(orderSheet.getOrderSheetStatus()).isEqualTo(OrderSheetStatus.PROCESSED);
 
-        var order = orderRepository.findById(new coffeehouse.modules.order.domain.OrderId("1a176aa8-e834-46e8-b293-0d0208ad1cd8")).orElse(null);
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
+    Awaitility.await().atMost(3, TimeUnit.SECONDS).untilAsserted(() -> {
+      var order = orderRepository.findById(new coffeehouse.modules.order.domain.OrderId("1a176aa8-e834-46e8-b293-0d0208ad1cd8")).orElse(null);
+      assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
 
-        verify(userNotifier, Mockito.times(1)).notify(any());
-    }
+      verify(userNotifier, Mockito.times(1)).notify(any());
+    });
+  }
 }

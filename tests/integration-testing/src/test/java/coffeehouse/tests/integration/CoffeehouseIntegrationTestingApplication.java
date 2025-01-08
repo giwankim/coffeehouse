@@ -30,6 +30,7 @@ import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.router.HeaderValueRouter;
 import org.springframework.messaging.MessageChannel;
@@ -52,6 +53,7 @@ public class CoffeehouseIntegrationTestingApplication {
   RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
     RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
     rabbitAdmin.declareQueue(new Queue("brew"));
+    rabbitAdmin.declareQueue(new Queue("brewCompleted"));
     return rabbitAdmin;
   }
 
@@ -65,11 +67,16 @@ public class CoffeehouseIntegrationTestingApplication {
 
       orderRepository.save(Order.create(new OrderId(newOrderIdValue), new UserAccountId(userAccountIdValue)));
 
-
       var acceptedOrderIdValue = "1a176aa8-e834-46e8-b293-0d0208ad1cd8";
       var confirmedOrderSheetIdValue = "e9c17eeb-2bbf-4087-acd3-9675eb6178db";
-      orderRepository.save(new Order(new OrderId(acceptedOrderIdValue), new UserAccountId(userAccountIdValue), OrderStatus.ACCEPTED));
-      orderSheetRepository.save(new OrderSheet(new OrderSheetId(confirmedOrderSheetIdValue), new coffeehouse.modules.brew.domain.OrderId(acceptedOrderIdValue), OrderSheetStatus.CONFIRMED));
+      orderRepository.save(new Order(
+          new OrderId(acceptedOrderIdValue),
+          new UserAccountId(userAccountIdValue),
+          OrderStatus.ACCEPTED));
+      orderSheetRepository.save(new OrderSheet(
+          new OrderSheetId(confirmedOrderSheetIdValue),
+          new coffeehouse.modules.brew.domain.OrderId(acceptedOrderIdValue),
+          OrderSheetStatus.CONFIRMED));
     };
   }
 
@@ -89,6 +96,20 @@ public class CoffeehouseIntegrationTestingApplication {
   }
 
   @Bean
+  MessageChannel brewCompletedChannel() {
+    return new DirectChannel();
+  }
+
+  @Bean
+  @ServiceActivator(inputChannel = "brewCompletedChannel")
+  public AmqpOutboundEndpoint brewCompletedAmqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
+    AmqpOutboundEndpoint amqpOutboundEndpoint = new AmqpOutboundEndpoint(amqpTemplate);
+    amqpOutboundEndpoint.setRoutingKey("brewCompleted");
+    return amqpOutboundEndpoint;
+  }
+
+
+  @Bean
   @ServiceActivator(inputChannel = "barCounterChannel")
   public AmqpOutboundEndpoint amqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
     AmqpOutboundEndpoint amqpOutboundEndpoint = new AmqpOutboundEndpoint(amqpTemplate);
@@ -102,9 +123,14 @@ public class CoffeehouseIntegrationTestingApplication {
   }
 
   @Bean
+  MessageChannel brewCompletedEventPublishSubscribeChannel() {
+    return new PublishSubscribeChannel();
+  }
+
+  @Bean
   SimpleMessageListenerContainer amqpContainer(ConnectionFactory connectionFactory) {
     SimpleMessageListenerContainer amqpContainer = new SimpleMessageListenerContainer(connectionFactory);
-    amqpContainer.addQueueNames("brew");
+    amqpContainer.addQueueNames("brew", "brewCompleted");
     return amqpContainer;
   }
 
@@ -113,6 +139,7 @@ public class CoffeehouseIntegrationTestingApplication {
   public HeaderValueRouter messageRouter() {
     HeaderValueRouter router = new HeaderValueRouter("amqp_receivedRoutingKey");
     router.setChannelMapping("brew", "brewRequestChannel");
+    router.setChannelMapping("brewCompleted", "brewCompletedEventPublishSubscribeChannel");
     return router;
   }
 

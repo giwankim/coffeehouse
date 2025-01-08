@@ -11,14 +11,12 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class NotificationMessagePublisher implements BrewNotifier {
-  private final MessageChannel brewCompletedNotifyOrderChannel;
-  private final MessageChannel brewCompletedNotifyUserChannel;
+  private final MessageChannel brewCompletedChannel;
 
   @Override
   public void notify(OrderId orderId) {
     BrewCompletedEvent brewCompletedEvent = new BrewCompletedEvent(orderId);
     GenericMessage<BrewCompletedEvent> message = new GenericMessage<>(brewCompletedEvent);
-    brewCompletedNotifyOrderChannel.send(message);
-    brewCompletedNotifyUserChannel.send(message);
+    brewCompletedChannel.send(message);
   }
 }
