@@ -18,15 +18,17 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.integration.amqp.dsl.Amqp;
+import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
+import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.web.client.RestTemplate;
 
@@ -84,12 +86,11 @@ public class CoffeehouseIntegrationTestingApplication {
   }
 
   @Bean
-  public IntegrationFlow amqpOutboudIntegrationFlow(AmqpTemplate amqpTemplate, MessageChannel barCounterChannel) {
-    return IntegrationFlow.from(barCounterChannel)
-        .handle(
-            Amqp.outboundAdapter(amqpTemplate)
-                .routingKey("brew")
-        ).get();
+  @ServiceActivator(inputChannel = "barCounterChannel")
+  public AmqpOutboundEndpoint amqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
+    AmqpOutboundEndpoint amqpOutboundEndpoint = new AmqpOutboundEndpoint(amqpTemplate);
+    amqpOutboundEndpoint.setRoutingKey("brew");
+    return amqpOutboundEndpoint;
   }
 
   @Bean
@@ -98,13 +99,16 @@ public class CoffeehouseIntegrationTestingApplication {
   }
 
   @Bean
-  public IntegrationFlow ampqInboundIntegrationFlow(ConnectionFactory connectionFactory, MessageChannel brewRequestChannel) {
-    return IntegrationFlow.from(
-        Amqp.inboundAdapter(connectionFactory, "brew")
-    ).handle(
-        message -> {
-          brewRequestChannel.send(message);
-        }
-    ).get();
+  SimpleMessageListenerContainer amqpContainer(ConnectionFactory connectionFactory) {
+    SimpleMessageListenerContainer amqpContainer = new SimpleMessageListenerContainer(connectionFactory);
+    amqpContainer.addQueueNames("brew");
+    return amqpContainer;
+  }
+
+  @Bean
+  public AmqpInboundChannelAdapter amqpInboundChannelAdapter(MessageChannel brewRequestChannel, SimpleMessageListenerContainer amqpContainer) {
+    AmqpInboundChannelAdapter amqpInboundChannelAdapter = new AmqpInboundChannelAdapter(amqpContainer);
+    amqpInboundChannelAdapter.setOutputChannel(brewRequestChannel);
+    return amqpInboundChannelAdapter;
   }
 }

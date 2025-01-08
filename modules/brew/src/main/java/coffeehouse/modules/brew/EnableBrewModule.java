@@ -1,8 +1,5 @@
 package coffeehouse.modules.brew;
 
-import coffeehouse.modules.brew.domain.OrderId;
-import coffeehouse.modules.brew.domain.service.OrderSheetSubmission;
-import coffeehouse.modules.order.domain.message.BrewRequestCommand;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -29,20 +26,6 @@ public @interface EnableBrewModule {
   @Configuration
   @ComponentScan
   class BrewModuleConfiguration {
-    @Bean
-    public IntegrationFlow requestBrewIntegrationFlow(
-        OrderSheetSubmission orderSheetSubmission, MessageChannel brewRequestChannel) {
-      return IntegrationFlow.from(brewRequestChannel)
-          .handle(
-              BrewRequestCommand.class,
-              (payload, headers) -> {
-                OrderId brewOrderId = new OrderId(payload.orderId().value());
-                orderSheetSubmission.submit(new OrderSheetSubmission.OrderSheetForm(brewOrderId));
-                return null;
-              })
-          .get();
-    }
-
     @Bean
     MessageChannel brewCompletedNotifyOrderChannel() {
       return new DirectChannel();
